@@ -47,9 +47,9 @@ urllib3.disable_warnings()
 #    'Accept-Encoding':'gzip, deflate',
 #}
 #loginPayload={
-#    "username":"15881034956",
-#    "password":"XiongWei723",
-#    "client_id":"G64vA0b95ZruUtGk1K0FkAgaO3Ch30sj",        #This is @jayzer1217's iOS device
+#    "username":"xxxxxxx",
+#    "password":"xxxxx",
+#    "client_id":"G64vA0b95ZruUtGk1K0FkAgaO3Ch30sj",       
 #    "ux_id":"com.nike.commerce.snkrs.ios",
 #    "grant_type":"password"
 #}
