@@ -49,7 +49,7 @@ urllib3.disable_warnings()
 #loginPayload={
 #    "username":"xxxxxxx",
 #    "password":"xxxxx",
-#    "client_id":"G64vA0b95ZruUtGk1K0FkAgaO3Ch30sj",       
+#    "client_id":"G64vA0b95ZruUtGk1K0FkAgaO3Ch30sj",
 #    "ux_id":"com.nike.commerce.snkrs.ios",
 #    "grant_type":"password"
 #}
@@ -70,13 +70,19 @@ def getLocalTimeStr(str):
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(float(tm+28800)))
 def addsepline():
     print("-----------------------------------------------------------------------------------------------")
+def addseptag():
+    print("##################################################################")
+
+# copyright
 
 addsepline()
+print("SNKRSMonitor 2.2")
 print("做监控是为了方便各位sneakerhead，有问题请反馈，免费分享，请不要倒卖！！！！")
-print("下载地址:https://pan.baidu.com/s/1h7sodzyH2-Cx1BWM5DdDbg")
+print("更新地址:https://pan.baidu.com/s/1h7sodzyH2-Cx1BWM5DdDbg")
 print("作者:Niko(wechat:xvnk23)")
 addsepline()
 
+# URL
 from enum import Enum
 class RegionURL(Enum):
     cn = "&country=CN&language=zh-Hans"
@@ -96,12 +102,13 @@ elif areaCode == "2":
 else:
     url += RegionURL.cn.value
 
+# Sneaker data
 print("正在抓取最新发布球鞋数据...")
-
 sneakers = [] #球鞋缓存
 ludict = {} #
 totalCount = 1000000
 
+# print sneaker data
 def printSneaker(data):
     str = data["name"]+" "+data["title"]
     try:
@@ -112,9 +119,36 @@ def printSneaker(data):
     except:
         pass
     if data["restricted"]:
-        str += "[专属]"
+        str += "[受限]"
     print(str)
 
+def printSneakerDetail(data):
+    dict = {
+        "LEO": "LEO(限量)",
+        "DAN": "DAN(抽签)",
+    }
+    product = data["product"]
+    try:
+        name = product["title"]+"["+product["colorDescription"]+"]"
+        if data["restricted"]:
+            name += "[受限]"
+        price = "价格:" + str(product["price"]["msrp"])
+        publicType = "发售方式:正常"
+        if product["publishType"] == "LAUNCH":
+            engine = product["selectionEngine"]
+            publicType = "发售方式:"+dict[engine]
+        launchInfo = "不可购买"
+        if product["merchStatus"] == "ACTIVE" and product["available"] and "stopSellDate" not in product.keys():
+            launchInfo = "发售时间:"+getLocalTimeStr(product["startSellDate"])
+        print(name)
+        print(price)
+        print(publicType)
+        print(launchInfo)
+    except:
+        pass
+
+
+# request sneaker
 def requestSneakers(order,offset):
     global totalCount
     requrl = url+"&offset="+str(offset)+order
@@ -145,7 +179,9 @@ for num in range(0,10000):
         break
     sneakers.extend(snkrs)
 
+# user setup
 addsepline()
+keyword = "dsadsadasd"
 frequency = 3
 warningTime = 5
 inputfreq = input("请设定接口访问频率(秒)，访问频率过快可能会导致服务器异常，默认是3，最小是1:")
@@ -162,19 +198,28 @@ except:
     print("输入出错，按照默认次数报警")
 if warningTime <= 0:
     warningTime == 5
+keyword  = input("设定库存监控关键词,多个关键词用空格区分(eg:off white):")
 print("服务器实时请求接口中("+str(frequency)+"秒每次)...")
-addsepline()
+addseptag()
+
+# refresh request
+#def sneakerAvailable(snkdata):
+#    if data["restricted"]:
+#        return false
+#    product = data["product"]
+#    if [r]
+
 
 def timer(n):
     while True:
-        http = urllib3.PoolManager()
-        requesturl = url + OrderBy.updated.value + "&offset=0"
-        r = http.request("GET", requesturl)
-        json_data = json.loads(r.data)
         try:
+            http = urllib3.PoolManager()
+            requesturl = url + OrderBy.updated.value + "&offset=0"
+            r = http.request("GET", requesturl)
+            json_data = json.loads(r.data)
             datas = json_data["threads"]
         except:
-            print("请求失败")
+            print("\r请求失败", flush = True)
             timer(frequency)
             break
         for data in datas:
@@ -184,16 +229,17 @@ def timer(n):
                 ludict[data["id"]] = getTime(data["lastUpdatedDate"])
                 i=warningTime
                 while i>0:
-                    os.system('say "发现新款上架"')
+                    os.system('say "发现新款更新"')
 #                    winsound.Beep(2600,1000)
-                    print(getLocalTimeStr(data["lastUpdatedDate"]),"发现新款上架",end=" ")
-                    printSneaker(data)
+                    print("\r","发现新款  更新时间:",getLocalTimeStr(data["lastUpdatedDate"]))
+                    printSneakerDetail(data)
+                    addseptag()
                     i-=1
             else:
                 if getTime(data["lastUpdatedDate"]) > ludict[sneakerid]:
                     ludict[sneakerid] = getTime(data["lastUpdatedDate"])
                     product = data["product"]
-                    print(getLocalTimeStr(data["lastUpdatedDate"]),end=" ")
+                    print("\r",getLocalTimeStr(data["lastUpdatedDate"]),end=" ")
                     str = "售罄"
                     if product["merchStatus"] == "ACTIVE":
                         if product["available"]:
@@ -205,6 +251,19 @@ def timer(n):
                             str += ")"
                     print(str,end=" ")
                     printSneaker(data)
+                    seostr = data["seoSlug"]
+                    findstrs = keyword.split()
+                    for key in findstrs:
+                        if seostr.find(key) != -1:
+                            printSneakerDetail(data)
+                            addseptag()
+                            i=warningTime
+                            while i>0:
+                                os.system('say "关注鞋款库存更新"')
+#                                winsound.Beep(2600,1000)
+                                i-=1
+                            break
+            print("\r"+time.strftime("最后更新时间:%Y-%m-%d %H:%M:%S",time.localtime(time.time())), end=" ")
         time.sleep(frequency)
 timer(3)
 # SNKRSMonitor
