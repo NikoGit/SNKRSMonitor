@@ -1,3 +1,3 @@
 # SNKRSMonitor
 snkrs monitor 
-for win mac
+for win mac test
